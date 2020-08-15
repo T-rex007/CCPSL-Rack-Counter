@@ -1,7 +1,9 @@
 
-def preprocess(img):
+import pandas as pd
 
-    return ouput_img
+def preprocess(img):
+    output_img = 0
+    return output_img
 
 def updateHistory(report):
     """

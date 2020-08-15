@@ -1,15 +1,44 @@
+import numpy as np
+import cv2 
+import argparse
+import time
+import datetime
+from helper import *
+from tensorflow.keras.models import model_from_json
+
+### Command Line Arguments 
+parser = argparse.ArgumentParser()
+parser.add_argument("IP", help = "Ip address of camera", type = str)
+args = parser.parse_args()
+
+### Load Model
+json_file = open('Models/smally_rack_model.json', 'r')
+loaded_model_json = json_file.read()
+json_file.close()
+loaded_model = model_from_json(loaded_model_json)
+
+# load weights into new model
+loaded_model.load_weights("Models/smally_rack_model.h5")
+print("Loaded model from disk")
 
 ### Predefined Region
 r1 = (150, 368, 63, 41)
-
 ### Address to video stream
 ip = 'Videos/rack.mp4'
 ### Vdeo streaming Object
 cap = cv2.VideoCapture(ip) 
+
+
 isRegionSelected = 1
-count = 0
+rack_count = 0
+palette_count = 0
 p1_change = False
-font = cv2.FONT_HERSHEY_SIMPLEX 
+font = cv2.FONT_HERSHEY_SIMPLEX
+
+out_dict  = {'Start Date and Time': [],
+             'End Date and Time':[],
+             'Total Rack Count':[],
+            'Total Palette Count':[]} 
 while(True): 
       
     # Capture frames in the video 
@@ -24,7 +53,6 @@ while(True):
         #############################################################################
         
         # Crop image
-        
         isRegionSelected = 1
 
     ### Preprocessing
@@ -56,7 +84,7 @@ while(True):
                     cv2.LINE_4)
         check_change = 0
         if(p1_change == True):
-            count = count +1
+            rack_count = rack_count +1
             p1_change = False
          
     elif( p1<0.2):
@@ -76,15 +104,33 @@ while(True):
     # Use putText() method for 
     # inserting text on video 
     cv2.putText(frame,  
-                'Racks counted {}'. format(count),  
+                'Racks counted {}'. format(rack_count),  
                 (170, 170),  
                 font, 0.5,  
                 (0, 255, 255),  
                 2,  
                 cv2.LINE_4)
+    
+    if((datetime.datetime.now()-start)>datetime.timedelta(hours = 1)):
+        out_dict['Start Date and Time'].append(
+            datetime.datetime.now() - datetime.timedelta(days = 1))
+        out_dict['End Date and Time'].append(datetime.datetime.now())
+        out_dict['Total Rack Count'].append(rack_count)
+        out_dict['Total Palette Count'].append(palette_count)### Not implemted
+        updateHistory(output_dict)
+
+        ### Reinstantiate Output Dictionary
+        out_dict  = {
+            'Start Date and Time': [],
+            'End Date and Time':[],
+            'Total Rack Count':[],
+            'Total Palette Count':[]
+            }
+        updateHistory()
+        print("Reseting LPU System .....")
     # Display the resulting frame 
     cv2.imshow('video', frame) 
-  
+
     # Set 'q' as the quit  
     # button for the video 
     if cv2.waitKey(1) & 0xFF == ord('q'): 
