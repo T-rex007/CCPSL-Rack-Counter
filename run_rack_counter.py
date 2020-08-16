@@ -9,12 +9,16 @@ import firebase_admin
 import os
 from firebase_admin import credentials
 from firebase_admin import firestore
+from firebase_admin import storage
 
 ### FireBase Authentication
 credential_path = "/home/trex/workspace/liveplant_updates/rack_detector/Auth/ccpsl-1797d-firebase-adminsdk-333t0-02b1f5b581.json"
 os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = credential_path
 ### Initializing Firebase App
-default_app = firebase_admin.initialize_app()
+cred = credentials.ApplicationDefault()
+firebase_admin.initialize_app(cred, {
+    'storageBucket': 'ccpsl-1797d.appspot.com'
+    })
 db = firestore.client()
 
 ### Command Line Arguments 
@@ -31,7 +35,7 @@ loaded_model = model_from_json(loaded_model_json)
 
 # load weights into new model
 loaded_model.load_weights("Models/smally_rack_model.h5")
-print("Loaded model from disk")
+print("Loaded model from disk...")
 
 ### Predefined Region (Not to be changed for guaranteed performance)
 r1 = (150, 368, 63, 41)
@@ -49,7 +53,7 @@ font = cv2.FONT_HERSHEY_SIMPLEX
 
 count_start_time = datetime.datetime.now() ### Needs to change 
 count_update_minute_start = datetime.datetime.now()
-daily_delta = datetime.timedelta(days = 1)
+daily_delta = datetime.timedelta(minutes= 2)
 minute_delta = datetime.timedelta(minutes = 1)
 out_dict  = {'Start Date and Time': [],'End Date and Time':[], 
              'Total Rack Count':[],'Total Palette Count':[]} 
@@ -135,10 +139,6 @@ while(True):
             }
         
         ### Update Firebase Database with daily summary
-        cred = credentials.ApplicationDefault()
-        firebase_admin.initialize_app(cred, {
-            'storageBucket': 'ccpsl-1797d.appspot.com'
-            })
         
         bucket = storage.bucket()
         blob = bucket.blob("LPU/lpuHistory.pdf")
@@ -146,12 +146,16 @@ while(True):
         
         ### Reset start daily time
         count_start_time = count_start_time + daily_delta
+        print("..............Finished.............")
 
     ### Count update
     if((datetime.datetime.now()-count_update_minute_start)>minute_delta):
+        print("Updating count.........")
+        print("Rack Count:",rack_count)
+        print("Palette Count: Not implemeted")
         doc_ref = db.collection(u'counts').document(u'lpu_counts')
         doc_ref.set({
-            u'count_reset': '{}'.format(1) ,
+            u'count_reset': '{}'.format(datetime.datetime.now().strftime("%H:%M")),
             u'rack_count': '{}'.format(rack_count),
             u'palette_count': '{}'.format(palette_count)
             })

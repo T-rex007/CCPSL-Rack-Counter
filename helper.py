@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import cv2
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 from tensorflow.keras.models import model_from_json
 from matplotlib.figure import Figure
@@ -15,21 +16,19 @@ def cropAndPredict(frame1, r1, loaded_model):
     
     ### Model Prediction
     p1 = loaded_model.predict(img1)
-
-    
     return p1
 
 def updateHistory(report):
     """
     Args:
-        report: Dictionary with the pre-specified format of count_log.csv
+        Report: Dictionary with the pre-specified format of count_log.csv
             (Same header names) 
     """
     df_new = pd.DataFrame(report)
-    df1 = pd.read_csv("count_log.csv",index_col =  False)
+    df1 = pd.read_csv("logs/count_log.csv",index_col =  False)
     df = df1.append(df_new, ignore_index = True
           )
-    df.to_csv("count_log.csv", index = False)
+    df.to_csv("logs/count_log.csv", index = False)
 
 def produceDataPdf(df):
     fig = Figure()
@@ -38,7 +37,7 @@ def produceDataPdf(df):
     ax.axis('tight')
     ax.axis('off')
     the_table = ax.table(cellText=df.values,colLabels=df.columns,loc='center')
-    pp = PdfPages("lpuHistory.pdf")
+    pp = PdfPages("logs/lpuHistory.pdf")
     pp.savefig(fig, bbox_inches='tight', dpi = 5)
     pp.close()
 
