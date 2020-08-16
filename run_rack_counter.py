@@ -47,7 +47,7 @@ palette_count = 0
 p1_change = False
 font = cv2.FONT_HERSHEY_SIMPLEX
 
-count_start_time = datetime.datetime.now()
+count_start_time = datetime.datetime.now() ### Needs to change 
 count_update_minute_start = datetime.datetime.now()
 daily_delta = datetime.timedelta(days = 1)
 minute_delta = datetime.timedelta(minutes = 1)
@@ -62,26 +62,17 @@ while(True):
         r1 = cv2.selectROI(frame)
         # Crop image
         imCrop1 = frame1[int(r1[1]):int(r1[1]+r1[3]), int(r1[0]):int(r1[0]+r1[2])]
-        #imCrop2 = frame1[int(r2[1]):int(r2[1]+r2[3]), int(r2[0]):int(r2[0]+r2[2])]
         #############################################################################
-        
-        # Crop image
         isRegionSelected = 1
 
-    ### Preprocessing
-    imCrop1 = frame1[int(r1[1]):int(r1[1]+r1[3]), int(r1[0]):int(r1[0]+r1[2])]
+    ### Model Prediction
+    p1 = cropAndPredict(frame1, r1, loaded_model)
     frame = cv2.rectangle(frame,
                           (int(r1[0]),int(r1[1])),
                           (int(r1[0] +r1[2]),int(r1[1]+r1[3])),
                           (255, 0, 0), 2
                          )
-    img1 = np.copy(imCrop1)
-    img1 = np.expand_dims(cv2.resize(img1/255.0, (64,64)), axis = 0)
-    
-    ### Model Prediction
-    p1 = loaded_model.predict(img1)
     ############################################################################
-    
     
     if (p1>0.80):# describe the type of font 
         # to be used. 
@@ -101,7 +92,6 @@ while(True):
             p1_change = False
          
     elif( p1<0.2):
-
         # Use putText() method for 
         # inserting text on video 
         cv2.putText(frame,  
@@ -112,8 +102,7 @@ while(True):
                     2,  
                     cv2.LINE_4)
         p1_change = True
-
-
+        
     # Use putText() method for 
     # inserting text on video 
     cv2.putText(frame,  
@@ -144,16 +133,29 @@ while(True):
             'Total Rack Count':[],
             'Total Palette Count':[]
             }
-        count_start_time = datetime.datetime.now()
+        
+        ### Update Firebase Database with daily summary
+        cred = credentials.ApplicationDefault()
+        firebase_admin.initialize_app(cred, {
+            'storageBucket': 'ccpsl-1797d.appspot.com'
+            })
+        
+        bucket = storage.bucket()
+        blob = bucket.blob("LPU/lpuHistory.pdf")
+        blob.upload_from_filename("lpuHistory.pdf")
+        
+        ### Reset start daily time
+        count_start_time = count_start_time + daily_delta
 
     ### Count update
     if((datetime.datetime.now()-count_update_minute_start)>minute_delta):
         doc_ref = db.collection(u'counts').document(u'lpu_counts')
         doc_ref.set({
-            u'count_reset': 'hour:minute' ,
-            u'rack_count': 'kevin_is_more_shit_shittier_than_shit',
-            u'palette_count': 'Anjana_is_shit'
+            u'count_reset': '{}'.format(1) ,
+            u'rack_count': '{}'.format(rack_count),
+            u'palette_count': '{}'.format(palette_count)
             })
+        ### Reset minute start time 
         count_update_minute_start = datetime.datetime.now()
 
     #######################################################################

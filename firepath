@@ -1,1 +1,1 @@
-export GOOGLE_APPLICATION_CREDENTIALS="~/workspace/liveplant_updates/rack_detector/Auth/ccpsl-1797d-firebase-adminsdk-333t0-02b1f5b581.json"
+export GOOGLE_APPLICATION_CREDENTIALS="/home/trex/workspace/liveplant_updates/rack_detector/Auth/ccpsl-1797d-firebase-adminsdk-333t0-02b1f5b581.json"
