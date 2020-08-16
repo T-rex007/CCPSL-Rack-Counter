@@ -53,7 +53,8 @@ font = cv2.FONT_HERSHEY_SIMPLEX
 
 count_start_time = datetime.datetime.now() ### Needs to change 
 count_update_minute_start = datetime.datetime.now()
-daily_delta = datetime.timedelta(minutes= 2)
+daily_reset_flag = False 
+daily_delta = datetime.timedelta(days = 1)
 minute_delta = datetime.timedelta(minutes = 1)
 out_dict  = {'Start Date and Time': [],'End Date and Time':[], 
              'Total Rack Count':[],'Total Palette Count':[]} 
@@ -121,10 +122,10 @@ while(True):
     #######################################################################
     
     ### History Update 
-    if((datetime.datetime.now()-count_start_time)>daily_delta):
+    #if((datetime.datetime.now()-count_start_time)>daily_delta):
+    if((time.localtime(time.time()).tm_mday ==7)and(daily_reset_flag == False)):
         print("Reseting LPU System .....")
-        out_dict['Start Date and Time'].append(
-            datetime.datetime.now() - datetime.timedelta(days = 1))
+        out_dict['Start Date and Time'].append(count_start_time)
         out_dict['End Date and Time'].append(datetime.datetime.now())
         out_dict['Total Rack Count'].append(rack_count)
         out_dict['Total Palette Count'].append(palette_count)### Not implemted
@@ -146,7 +147,11 @@ while(True):
         
         ### Reset start daily time
         count_start_time = count_start_time + daily_delta
+        daily_reset_flag = True
         print("..............Finished.............")
+
+    if(time.localtime(time.time()).tm_mday == 1):
+        daily_reset_flag = False
 
     ### Count update
     if((datetime.datetime.now()-count_update_minute_start)>minute_delta):
