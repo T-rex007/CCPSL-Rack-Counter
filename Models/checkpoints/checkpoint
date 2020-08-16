@@ -1,0 +1,2 @@
+model_checkpoint_path: "smally_rack_net_chkpt"
+all_model_checkpoint_paths: "smally_rack_net_chkpt"
