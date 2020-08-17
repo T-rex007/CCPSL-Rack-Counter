@@ -35,6 +35,21 @@ loaded_model = model_from_json(loaded_model_json)
 
 # load weights into new model
 loaded_model.load_weights("Models/smally_rack_model.h5")
+
+
+###### model from weights ######
+# model = RackNet()
+# model.load_weights('Models/checkpoints/smally_rack_net_chkpt')
+# model.predict(np.expand_dims(img, axis = 0))
+
+###### Model from pb file ######
+# loaded = tf.saved_model.load("Models/rack_net/1/")
+# print(list(loaded.signatures.keys()))  #["serving default"]
+# infer = loaded.signatures["serving_default"]
+# print(infer.structured_outputs)
+
+###### 
+
 print("Loaded model from disk...")
 
 ### Predefined Region (Not to be changed for guaranteed performance)

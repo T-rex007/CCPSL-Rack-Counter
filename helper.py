@@ -11,10 +11,8 @@ from tensorflow.keras.layers import Dense, Conv2D, Flatten, Activation, MaxPooli
 
 def cropAndPredict(frame1, r1, loaded_model):
     imCrop1 = frame1[int(r1[1]):int(r1[1]+r1[3]), int(r1[0]):int(r1[0]+r1[2])]
-    
     img1 = np.copy(imCrop1)
-    img1 = np.expand_dims(cv2.resize(img1/255.0, (64,64)), axis = 0)
-    
+    img1 = np.expand_dims(cv2.resize(img1/255.0, (64,64)), axis = 0) 
     ### Model Prediction
     p1 = loaded_model.predict(img1)
     return p1
@@ -43,24 +41,18 @@ def produceDataPdf(df):
     pp.close()
 
 def RackNet():
-        ### CREATE SEQUENTIAL MODEL
-
+    ### CREATE SEQUENTIAL MODEL
     input_shape = (64, 64, 3)
     print (input_shape)
     print('Creating Model')
-
     model = Sequential()
-
     #filters,kernel_size,strides=(1, 1),padding='valid',data_format=None,dilation_rate=(1, 1),activation=None,use_bias=True,
     #kernel_initializer='glorot_uniform',bias_initializer='zeros',kernel_regularizer=None,bias_regularizer=None,
     #activity_regularizer=None,kernel_constraint=None,bias_constraint=None,
-
     #pool_size=(2, 2), strides=None, padding='valid',data_format=None
-
     model.add(Conv2D(32, (3,3),padding='same',input_shape=input_shape,name='conv2d_1'))
     model.add(Activation('relu'))
     #model.add(MaxPooling2D(pool_size=(2, 2),name='maxpool2d_1'))
-
     model.add(Conv2D(64, 3, 3, name='conv2d_6'))
     model.add(Activation('relu'))
     #model.add(MaxPooling2D(pool_size=(2, 2)))
@@ -78,3 +70,4 @@ def RackNet():
                 optimizer='Adam',
                 metrics=['accuracy'])
     return model
+
