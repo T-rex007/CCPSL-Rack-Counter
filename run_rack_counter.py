@@ -12,14 +12,29 @@ from firebase_admin import firestore
 from firebase_admin import storage
 
 ### FireBase Authentication
-credential_path = "/home/trex/workspace/liveplant_updates/rack_detector/Auth/ccpsl-1797d-firebase-adminsdk-333t0-02b1f5b581.json"
+credential_path = os.getcwd() + "/Auth/ccpsl-1797d-firebase-adminsdk-333t0-02b1f5b581.json"
 os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = credential_path
 ### Initializing Firebase App
-cred = credentials.ApplicationDefault()
-firebase_admin.initialize_app(cred, {
-    'storageBucket': 'ccpsl-1797d.appspot.com'
-    })
-db = firestore.client()
+
+try: 
+    print("Authenticating and Reinitializing Firebase App")
+    cred = credentials.ApplicationDefault()
+    firebase_admin.initialize_app(cred, {
+        'storageBucket': 'ccpsl-1797d.appspot.com'
+        })
+    db = firestore.client()
+except: 
+    print("Error Connecting to Firebase")
+    print("Check Internet Connection")
+    try: 
+        print("Authenticating and Reinitializing Firebase App")
+        cred = credentials.ApplicationDefault()
+        firebase_admin.initialize_app(cred, {
+            'storageBucket': 'ccpsl-1797d.appspot.com'
+            })
+        db = firestore.client()
+    except: 
+        print("Problem Persists Moving on")
 
 ### Command Line Arguments 
 parser = argparse.ArgumentParser()
@@ -28,19 +43,19 @@ parser.add_argument("SupressDisplay", help = "Whether or not to suppress the dis
 args = parser.parse_args()
 
 ### Load Model
-json_file = open('Models/smally_rack_model.json', 'r')
-loaded_model_json = json_file.read()
-json_file.close()
-loaded_model = model_from_json(loaded_model_json)
+# json_file = open('Models/smally_rack_model.json', 'r')
+# loaded_model_json = json_file.read()
+# json_file.close()
+# loaded_model = model_from_json(loaded_model_json)
 
-# load weights into new model
-loaded_model.load_weights("Models/smally_rack_model.h5")
+# # load weights into new model
+# loaded_model.load_weights("Models/smally_rack_model.h5")
 
 
 ###### model from weights ######
-# model = RackNet()
-# model.load_weights('Models/checkpoints/smally_rack_net_chkpt')
-# model.predict(np.expand_dims(img, axis = 0))
+loaded_model = RackNet()
+loaded_model.load_weights('Models/checkpoints/smally_rack_net_chkpt')
+#loaded_model.predict(np.expand_dims(img, axis = 0))
 
 ###### Model from pb file ######
 # loaded = tf.saved_model.load("Models/rack_net/1/")
@@ -155,11 +170,19 @@ while(True):
             }
         
         ### Update Firebase Database with daily summary
-        
-        bucket = storage.bucket()
-        blob = bucket.blob("LPU/lpuHistory.pdf")
-        blob.upload_from_filename("lpuHistory.pdf")
-        
+        try:
+            bucket = storage.bucket()
+            blob = bucket.blob("LPU/lpuHistory.pdf")
+            blob.upload_from_filename("lpuHistory.pdf")
+        except:
+            print("Error Connecting to Firebase")
+            print("Attemting to reconnect to Firebase Database")
+            try:
+                ### Reinitialise fibase app
+                print("Connecting.... ")
+            except:
+                print("Problem persists Moving on")      
+         
         ### Reset start daily time
         count_start_time = count_start_time + daily_delta
         daily_reset_flag = True
@@ -173,12 +196,23 @@ while(True):
         print("Updating count.........")
         print("Rack Count:",rack_count)
         print("Palette Count: Not implemeted")
-        doc_ref = db.collection(u'counts').document(u'lpu_counts')
-        doc_ref.set({
-            u'count_reset': '{}'.format(datetime.datetime.now().strftime("%H:%M")),
-            u'rack_count': '{}'.format(rack_count),
-            u'palette_count': '{}'.format(palette_count)
-            })
+
+        try:
+            doc_ref = db.collection(u'counts').document(u'lpu_counts')
+            doc_ref.set({
+                u'count_reset': '{}'.format(datetime.datetime.now().strftime("%H:%M")),
+                u'rack_count': '{}'.format(rack_count),
+                u'palette_count': '{}'.format(palette_count)
+                })
+        except:
+            print("Error Connecting to Firebase")
+            print("Attemting to reconnect to Firebase Database")
+            try:
+                ### Reinitialise fibase app
+                print("Connecting.... ")
+            except:
+                print("Problem persists Moving on")   
+
         ### Reset minute start time 
         count_update_minute_start = datetime.datetime.now()
 
