@@ -29,7 +29,8 @@ def updateHistory(report):
           )
     df.to_csv("logs/count_log.csv", index = False)
 
-def produceDataPdf(df):
+def produceDataPdf():
+    df = pd.read_csv("logs/count_log.csv",index_col =  False)
     fig = Figure()
     canvas = FigureCanvas(fig)
     ax = fig.add_subplot()

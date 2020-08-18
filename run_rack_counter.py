@@ -137,7 +137,6 @@ while(True):
                     2,  
                     cv2.LINE_4)
         p1_change = True
-        
     # Use putText() method for 
     # inserting text on video 
     cv2.putText(frame,  
@@ -159,7 +158,9 @@ while(True):
         out_dict['End Date and Time'].append(datetime.datetime.now())
         out_dict['Total Rack Count'].append(rack_count)
         out_dict['Total Palette Count'].append(palette_count)### Not implemted
+        print("Update local files")
         updateHistory(out_dict)
+        produceDataPdf()
 
         ### Reinstantiate Output Dictionary
         out_dict  = {
@@ -170,6 +171,7 @@ while(True):
             }
         
         ### Update Firebase Database with daily summary
+        print("Attempting to update Firebase Database")
         try:
             bucket = storage.bucket()
             blob = bucket.blob("LPU/lpuHistory.pdf")
@@ -180,6 +182,12 @@ while(True):
             try:
                 ### Reinitialise fibase app
                 print("Connecting.... ")
+                print("Authenticating and Reinitializing Firebase App")
+                cred = credentials.ApplicationDefault()
+                firebase_admin.initialize_app(cred, {
+                    'storageBucket': 'ccpsl-1797d.appspot.com'
+                    })
+                db = firestore.client()
             except:
                 print("Problem persists Moving on")      
          
@@ -191,12 +199,16 @@ while(True):
     if(time.localtime(time.time()).tm_mday == 1):
         daily_reset_flag = False
 
-    ### Count update
+
+
+
+    ### Minute Count Update
     if((datetime.datetime.now()-count_update_minute_start)>minute_delta):
         print("Updating count.........")
         print("Rack Count:",rack_count)
         print("Palette Count: Not implemeted")
 
+        print("Attempting to update online count ... ")
         try:
             doc_ref = db.collection(u'counts').document(u'lpu_counts')
             doc_ref.set({
@@ -210,6 +222,12 @@ while(True):
             try:
                 ### Reinitialise fibase app
                 print("Connecting.... ")
+                print("Authenticating and Reinitializing Firebase App")
+                cred = credentials.ApplicationDefault()
+                firebase_admin.initialize_app(cred, {
+                    'storageBucket': 'ccpsl-1797d.appspot.com'
+                    })
+                db = firestore.client()
             except:
                 print("Problem persists Moving on")   
 
