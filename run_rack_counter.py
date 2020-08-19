@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import numpy as np
 import cv2 
 import argparse
@@ -38,7 +40,7 @@ except:
 
 ### Command Line Arguments 
 parser = argparse.ArgumentParser()
-parser.add_argument("IP", help = "Ip address of camera", type = str)
+parser.add_argument("IPS", help = "Ip address of camera", type = str)
 parser.add_argument("SupressDisplay", help = "Whether or not to suppress the display", type = bool)
 args = parser.parse_args()
 
@@ -72,8 +74,9 @@ r1 = (150, 368, 63, 41)
 ### Address to video stream
 ip = 'Videos/rack.mp4' ### Test Video
 ### Vdeo streaming Object
+print("Loading Capture")
 cap = cv2.VideoCapture(ip) 
-
+print("Finished")
 SupressDisplay = False
 isRegionSelected = 1
 rack_count = 0
@@ -91,6 +94,9 @@ out_dict  = {'Start Date and Time': [],'End Date and Time':[],
 while(True): 
     # Capture frames in the video 
     ret, frame = cap.read() 
+    #if(frame == None):
+    #    print("OOOOps")
+    #    break
     frame1 = cv2.cvtColor(np.copy(frame), cv2.COLOR_BGR2RGB)
     if (isRegionSelected == 0):
         # Select ROI
@@ -137,6 +143,14 @@ while(True):
                     2,  
                     cv2.LINE_4)
         p1_change = True
+    else:
+        cv2.putText(frame,  
+            'Dead Zone {}'.format(p1),  
+            (100, 100),  
+            font, 0.5,  
+            (0, 255, 255),  
+            2,  
+            cv2.LINE_4)
     # Use putText() method for 
     # inserting text on video 
     cv2.putText(frame,  
