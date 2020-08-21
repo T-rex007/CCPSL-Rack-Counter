@@ -12,9 +12,11 @@ import os
 from firebase_admin import credentials
 from firebase_admin import firestore
 from firebase_admin import storage
-
 ### FireBase Authentication
-credential_path = os.getcwd() + "/Auth/ccpsl-1797d-firebase-adminsdk-333t0-02b1f5b581.json"
+#project_id = 
+bucket_path = 'ccpsl-web-b6aac.appspot.com'
+rel_cred_path = "/Auth/ccpsl-1797d-firebase-adminsdk-333t0-02b1f5b581.json"
+credential_path = os.getcwd() + rel_cred_path
 os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = credential_path
 ### Initializing Firebase App
 
@@ -22,7 +24,9 @@ try:
     print("Authenticating and Reinitializing Firebase App")
     cred = credentials.ApplicationDefault()
     firebase_admin.initialize_app(cred, {
-        'storageBucket': 'ccpsl-1797d.appspot.com'
+        #'storageBucket': 'ccpsl-1797d.appspot.com'
+        'storageBucket': bucket_path,
+        'projectId': project_id
         })
     db = firestore.client()
 except: 
@@ -32,7 +36,7 @@ except:
         print("Authenticating and Reinitializing Firebase App")
         cred = credentials.ApplicationDefault()
         firebase_admin.initialize_app(cred, {
-            'storageBucket': 'ccpsl-1797d.appspot.com'
+            'storageBucket': bucket_path
             })
         db = firestore.client()
     except: 
@@ -85,6 +89,7 @@ p1_change = False
 font = cv2.FONT_HERSHEY_SIMPLEX
 
 count_start_time = datetime.datetime.now() ### Needs to change 
+hour_index_check = time.localtime(time.time()).tm_hour
 count_update_minute_start = datetime.datetime.now()
 daily_reset_flag = False 
 daily_delta = datetime.timedelta(days = 1)
@@ -187,9 +192,12 @@ while(True):
         ### Update Firebase Database with daily summary
         print("Attempting to update Firebase Database")
         try:
+            # bucket = storage.bucket()
+            # blob = bucket.blob("LPU/lpuHistory.pdf")
+            # blob.upload_from_filename("lpuHistory.pdf")
             bucket = storage.bucket()
-            blob = bucket.blob("LPU/lpuHistory.pdf")
-            blob.upload_from_filename("lpuHistory.pdf")
+            blob = bucket.blob("LPU/count_log.csv")
+            blob.upload_from_filename("count_log.csv")
         except:
             print("Error Connecting to Firebase")
             print("Attemting to reconnect to Firebase Database")
@@ -199,7 +207,7 @@ while(True):
                 print("Authenticating and Reinitializing Firebase App")
                 cred = credentials.ApplicationDefault()
                 firebase_admin.initialize_app(cred, {
-                    'storageBucket': 'ccpsl-1797d.appspot.com'
+                    'storageBucket': bucket_path
                     })
                 db = firestore.client()
             except:
@@ -214,7 +222,39 @@ while(True):
         daily_reset_flag = False
 
 
-
+    ### hourly udate
+    if(time.localtime(time.time()).tm_hour != hour_index_check ):
+        hour_index_check = hour_index_check +1 
+        # data_fileName = "lpuHistory.pdf"
+        
+        data_filename = "logs/"+date1+"_hourly_count.csv"
+        try:
+            # bucket = storage.bucket()
+            # blob = bucket.blob("LPU/"+ data_fileName)
+            # blob.upload_from_filename(data_fileName)
+            bucket = storage.bucket()
+            blob = bucket.blob("LPU/" + data_filename)
+            blob.upload_from_filename(data_filename)
+        except:
+            print("Error Connecting to Firebase")
+            print("Attemting to reconnect to Firebase Database")
+            try:
+                ### Reinitialise fibase app
+                print("Connecting.... ")
+                print("Authenticating and Reinitializing Firebase App")
+                cred = credentials.ApplicationDefault()
+                firebase_admin.initialize_app(cred, {
+                    'storageBucket': bucket_path
+                    })
+                db = firestore.client()
+            except:
+                print("Problem persists Moving on")      
+         
+        ### Reset start daily time
+        count_start_time = count_start_time + daily_delta
+        daily_reset_flag = True
+        print("..............Finished.............")
+  
 
     ### Minute Count Update
     if((datetime.datetime.now()-count_update_minute_start)>minute_delta):
@@ -239,7 +279,7 @@ while(True):
                 print("Authenticating and Reinitializing Firebase App")
                 cred = credentials.ApplicationDefault()
                 firebase_admin.initialize_app(cred, {
-                    'storageBucket': 'ccpsl-1797d.appspot.com'
+                    'storageBucket': bucket_path
                     })
                 db = firestore.client()
             except:

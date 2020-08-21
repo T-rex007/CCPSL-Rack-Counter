@@ -40,7 +40,27 @@ def produceDataPdf():
     pp = PdfPages("logs/lpuHistory.pdf")
     pp.savefig(fig, bbox_inches='tight', dpi = 5)
     pp.close()
+def updateHourlyHistory(report):
+    """
+    Args:
+        Report: Dictionary with the pre-specified format of count_log.csv
+            (Same header names) 
+    """
+    date1 = datetime.datetime.now().strftime("%y_%m_%d")
+    df_new = pd.DataFrame(report)
+    df1 = pd.read_csv("logs/"+date1+"_hourly_count.csv",index_col =  False)
+    df = df1.append(df_new, ignore_index = True
+          )
+    df.to_csv("logs/"+date1+"_hourly_count.csv", index = False)
 
+def hourlyLogInit():
+    outh = {"Date time":[],
+            "Hourly Palette Count": [], 
+            "Hourly Rack Count": []
+           }
+    df = pd.DataFrame(outh)
+    date1 = datetime.datetime.now().strftime("%y_%m_%d")
+    df.to_csv("logs/"+date1+"_hourly_count.csv", index = False)
 def RackNet():
     ### CREATE SEQUENTIAL MODEL
     input_shape = (64, 64, 3)

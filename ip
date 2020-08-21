@@ -1,0 +1,12 @@
+172.40.30.34
+
+rstp port 554
+http 80
+ipv4 address 172.40.30.249
+ipv4 default gate way 172.40.30.1
+internal nic ipv4 Address: 192.168.20.27
+admin Account: Username:admin 
+               Password:P@ssw0rd
+IP Camera Password: P@ssw0rd1
+
+admin123
