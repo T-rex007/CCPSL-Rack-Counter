@@ -76,7 +76,7 @@ print("Loaded model from disk...")
 ### Predefined Region (Not to be changed for guaranteed performance)
 r1 = (150, 368, 63, 41)
 ### Address to video stream
-ip = 'Videos/rack.mp4' ### Test Video
+ip = 'testing_clips/half_rack3.mp4 ' ### Test Video
 ### Vdeo streaming Object
 print("Loading Capture")
 cap = cv2.VideoCapture(ip) 
@@ -137,7 +137,7 @@ while(True):
             rack_count = rack_count +1
             p1_change = False
          
-    elif( p1<0.2):
+    elif( p1<0.15):
         # Use putText() method for 
         # inserting text on video 
         cv2.putText(frame,  
@@ -218,16 +218,16 @@ while(True):
         daily_reset_flag = True
         print("..............Finished.............")
 
+    ### Reset daily reset flag
     if(time.localtime(time.time()).tm_mday == 1):
         daily_reset_flag = False
-
-
+ 
     ### hourly udate
     if(time.localtime(time.time()).tm_hour != hour_index_check ):
-        hour_index_check = hour_index_check +1 
+        hour_index_check = hour_index_check +1
+        date = datetime.datetime.now().strftime("%y_%m_%d")
         # data_fileName = "lpuHistory.pdf"
-        
-        data_filename = "logs/"+date1+"_hourly_count.csv"
+        data_filename = "logs/"+date+"_hourly_count.csv"
         try:
             # bucket = storage.bucket()
             # blob = bucket.blob("LPU/"+ data_fileName)
