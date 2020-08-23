@@ -17,18 +17,22 @@ This Repo contains the development code for a Live Plant Update system, develope
 ## Testing 
 Test case 1: No disturbace
 <img src="img_girl.jpg" alt="Girl in a jacket" width="500" height="600">
+
 All raacks were counted without Miscount
 
 Test case 2: Maintainence on the Line 
 <img src="ccpsl_test_snapshots/man1.png" alt="Maintainence on the line" width="500" height="600">
+
 During the entire maintaience video the system miscounted once.
 
 Test Case 3: Half Racks
 <img src="ccpsl_test_snapshots/half_racks_counted.png" alt="Half Racks" width="500" height="600">
+
 These racks were counted.
 
 Test Case 4: A few bricks
 <img src="ccpsl_test_snapshots/som1.png" alt="A few bricks" width="500" height="600">
+
 This Rack was ignored by the system 
 
 Test Case 5: Stationery Line (No Racks)
