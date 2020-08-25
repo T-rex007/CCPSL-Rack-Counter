@@ -1,13 +1,15 @@
+#!/usr/bin/env python
+
 import pandas as pd
 import numpy as np
 import cv2
+import datetime
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 from tensorflow.keras.models import model_from_json
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_pdf import PdfPages
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, Conv2D, Flatten, Activation, MaxPooling2D, Dropout
-
 
 def cropAndPredict(frame1, r1, loaded_model):
     imCrop1 = frame1[int(r1[1]):int(r1[1]+r1[3]), int(r1[0]):int(r1[0]+r1[2])]
@@ -49,8 +51,7 @@ def updateHourlyHistory(report):
     date1 = datetime.datetime.now().strftime("%y_%m_%d")
     df_new = pd.DataFrame(report)
     df1 = pd.read_csv("logs/"+date1+"_hourly_count.csv",index_col =  False)
-    df = df1.append(df_new, ignore_index = True
-          )
+    df = df1.append(df_new, ignore_index = True)
     df.to_csv("logs/"+date1+"_hourly_count.csv", index = False)
 
 def hourlyLogInit():
@@ -61,6 +62,7 @@ def hourlyLogInit():
     df = pd.DataFrame(outh)
     date1 = datetime.datetime.now().strftime("%y_%m_%d")
     df.to_csv("logs/"+date1+"_hourly_count.csv", index = False)
+
 def RackNet():
     ### CREATE SEQUENTIAL MODEL
     input_shape = (64, 64, 3)

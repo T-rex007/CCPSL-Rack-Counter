@@ -1,17 +1,26 @@
 ### Automatic live plant updates for CCPSL
 
-This Repo contains the development code for a Live Plant Update system, developed for a brick factory during an intership at CCPSL(Caribbean clay Processing Services Ltd).
+This Repo contains the development code for a Live Plant Update system, developed for a brick factory during an internship at CCPSL(Caribbean clay Processing Services Ltd).
 
+### How it works?
+
+### Setup
+
+## Software
+
+## Hardware
+
+### Discussion
+<br/>
 
 ## Known Bugs
-- The models confidence comes very close to to thresshold when workers are in the counting on the line (But still has low false positive rate)
-- Half rack are counted 
+- The model's confidence came very close to the thresshold value when workers are in the region the system looks at to count the racks the line (But still has low false positive rate)
+- Racks that were half filled are also counted 
 
 ## Known Limitations
 - Camera once Set can't be moved or performance of the system may degrade.
 - Region need to be manually added once at first.
-
-
+- System doesn't say how much bricks are on each rack i.e. whether its half of a rack of an entire rack
 
 
 ## Testing 

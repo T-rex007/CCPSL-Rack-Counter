@@ -13,13 +13,13 @@ from firebase_admin import credentials
 from firebase_admin import firestore
 from firebase_admin import storage
 ### FireBase Authentication
-#project_id = 
-bucket_path = 'ccpsl-web-b6aac.appspot.com'
-rel_cred_path = "/Auth/ccpsl-1797d-firebase-adminsdk-333t0-02b1f5b581.json"
+project_id = 'ccpsl-tt'
+bucket_path = 'ccpsl-tt.appspot.com'
+rel_cred_path = "/Auth2/ccpsl-tt-a3f9d8857c5a.json"
 credential_path = os.getcwd() + rel_cred_path
 os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = credential_path
-### Initializing Firebase App
 
+### Initializing Firebase App
 try: 
     print("Authenticating and Reinitializing Firebase App")
     cred = credentials.ApplicationDefault()
@@ -36,7 +36,8 @@ except:
         print("Authenticating and Reinitializing Firebase App")
         cred = credentials.ApplicationDefault()
         firebase_admin.initialize_app(cred, {
-            'storageBucket': bucket_path
+            'storageBucket': bucket_path,
+            'projectId': project_id
             })
         db = firestore.client()
     except: 
@@ -76,11 +77,13 @@ print("Loaded model from disk...")
 ### Predefined Region (Not to be changed for guaranteed performance)
 r1 = (150, 368, 63, 41)
 ### Address to video stream
-ip = 'testing_clips/half_rack3.mp4 ' ### Test Video
+ip = 'Videos/rack.mp4' ### Test Video
 ### Vdeo streaming Object
 print("Loading Capture")
 cap = cv2.VideoCapture(ip) 
+print("Camera Address: " + ip)
 print("Finished")
+
 SupressDisplay = False
 isRegionSelected = 1
 rack_count = 0
@@ -96,7 +99,59 @@ daily_delta = datetime.timedelta(days = 1)
 minute_delta = datetime.timedelta(minutes = 1)
 out_dict  = {'Start Date and Time': [],'End Date and Time':[], 
              'Total Rack Count':[],'Total Palette Count':[]} 
-while(True): 
+
+hourlyLogInit()
+print("Relaoded saved count?")
+print("Checking...")
+
+with open("Count_backup/saved_rack_count.txt", "r") as f:
+    r, dr = f.read().split("#")
+# with open("Count_backup/saved_palette_count.txt", "r") as f:
+#     p, dp = f.read().split("#")
+
+dshutdown = datetime.datetime.strptime(dr, "%Y-%m-%d-%H-%M-%S")
+dnow = datetime.datetime.now()
+
+dnow_day = dnow.strftime("%Y-%m-%d")
+dnow_time = dnow.strftime("%H-%M-%S")
+
+dshutdown_day = dshutdown.strftime("%Y-%m-%d")
+dshutdown_time = dshutdown.strftime("%H-%M-%S")
+
+hms_shutdown =[ int(i) for i in dshutdown_time.split("-")]
+hms_now = [int(i) for i in dnow_time.split("-")] 
+print("Shutdown Time [hour, minutes, seconds]: ", hms_shutdown)
+print("Time [hour, minutes, seconds]: ", hms_now)
+
+for i in range(1):
+    if(datetime.timedelta(days = 1)>(dnow-dshutdown)):
+        if ((hms_shutdown[0]<7) and (hms_now[0]>=7)):
+            ## If the hour at which the system shutdown is before 7am
+            ## and the system restarts at/after 7am
+            ## Reset Count
+            #print("Loading last saved count.")
+            date1 = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+            rack_count = 0
+            pallette_count = 0
+            print("Counts were reset")
+            with open("Count_backup/saved_rack_count.txt", "w") as f:
+                f.write(str(rack_count) +"#"+ date1)
+
+            # with open("Count_backup/saved_palette_count.txt", "w") as f:
+            #     f.write(str(palette_count) +"#"+ date1)
+            break
+        else:
+            print("Counts were Reloaded")
+            rack_count = int(r)
+            ### Not Implemeted
+            palette_count = int(0)
+    else:
+        print("Shutdown has happened for more than a day reseting counts...")
+        rack_count = 0
+        palette_count = 0
+            
+
+while(cap.isOpened()): 
     # Capture frames in the video 
     ret, frame = cap.read() 
     #if(frame == None):
@@ -180,7 +235,7 @@ while(True):
         print("Update local files")
         updateHistory(out_dict)
         produceDataPdf()
-
+        hourlyLogInit()
         ### Reinstantiate Output Dictionary
         out_dict  = {
             'Start Date and Time': [],
@@ -188,16 +243,24 @@ while(True):
             'Total Rack Count':[],
             'Total Palette Count':[]
             }
-        
+
         ### Update Firebase Database with daily summary
         print("Attempting to update Firebase Database")
         try:
             # bucket = storage.bucket()
             # blob = bucket.blob("LPU/lpuHistory.pdf")
             # blob.upload_from_filename("lpuHistory.pdf")
+            doc_ref = db.collection(u'counts_log').document(
+                datetime.datetime.now().strftime("%Y-%m-%d"))
+            doc_ref.set({
+                u'dateTime': datetime.datetime.now(),
+                u'totalRackCount': '{}'.format(rack_count),
+                u'totalPaletteCount': '{}'.format(palette_count),
+                u'id': '{}'.format(datetime.datetime.now().strftime("%Y-%m-%d"))
+                })
             bucket = storage.bucket()
-            blob = bucket.blob("LPU/count_log.csv")
-            blob.upload_from_filename("count_log.csv")
+            blob = bucket.blob("LPU/logs/count_log.csv")
+            blob.upload_from_filename("logs/count_log.csv")
         except:
             print("Error Connecting to Firebase")
             print("Attemting to reconnect to Firebase Database")
@@ -217,6 +280,12 @@ while(True):
         count_start_time = count_start_time + daily_delta
         daily_reset_flag = True
         print("..............Finished.............")
+        rack_count = 0
+        palette_count = 0
+        with open("Count_backup/saved_rack_count.txt", "w") as f:
+           f.write(str(rack_count) +"#"+ datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S"))
+        # with open("Count_backup/saved_palette_count.txt", "w") as f:
+        #     f.write(str(palette_count) +"#"+ datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S"))
 
     ### Reset daily reset flag
     if(time.localtime(time.time()).tm_mday == 1):
@@ -224,14 +293,30 @@ while(True):
  
     ### hourly udate
     if(time.localtime(time.time()).tm_hour != hour_index_check ):
-        hour_index_check = hour_index_check +1
+        hour_index_check = hour_index_check + 1
         date = datetime.datetime.now().strftime("%y_%m_%d")
+        datetime1 = datetime.datetime.now().strftime("%y-%m-%d-%H")
         # data_fileName = "lpuHistory.pdf"
         data_filename = "logs/"+date+"_hourly_count.csv"
+        outh = {"dateTime":[datetime1],
+            "hourlyPaletteCount": [0], 
+            "hourlyRackCount": [rack_count]}
+        updateHourlyHistory(outh)
+        #####################################################
+        ### Updating firbase storage and Firestare
         try:
+            print("Updating Hourly Log")
             # bucket = storage.bucket()
             # blob = bucket.blob("LPU/"+ data_fileName)
             # blob.upload_from_filename(data_fileName)
+            doc_ref = db.collection(u'counts_hourly').document(
+                "hour_{}".format(time.localtime(time.time()).tm_hour))
+            doc_ref.set({
+                u'dateTime': datetime.datetime.now(),
+                u'hourlyRackCount': '{}'.format(rack_count),
+                u'hourlyPaletteCount': '{}'.format(palette_count),
+                u'id': "hour_{}".format(time.localtime(time.time()).tm_hout)
+                })
             bucket = storage.bucket()
             blob = bucket.blob("LPU/" + data_filename)
             blob.upload_from_filename(data_filename)
@@ -248,8 +333,8 @@ while(True):
                     })
                 db = firestore.client()
             except:
-                print("Problem persists Moving on")      
-         
+                print("Problem Persists Moving On")      
+        #################################################
         ### Reset start daily time
         count_start_time = count_start_time + daily_delta
         daily_reset_flag = True
@@ -261,14 +346,20 @@ while(True):
         print("Updating count.........")
         print("Rack Count:",rack_count)
         print("Palette Count: Not implemeted")
+        print("Saving Count Value locally")
 
-        print("Attempting to update online count ... ")
+        with open("Count_backup/saved_rack_count.txt", "w") as f:
+           f.write(str(rack_count) +"#"+ datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S"))
+        # with open("Count_backup/saved_palette_count.txt", "w") as f:
+        #     f.write(str(palette_count) +"#"+ datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S"))
+        print("Attempting to update online count... ")
         try:
-            doc_ref = db.collection(u'counts').document(u'lpu_counts')
+            doc_ref = db.collection(u'counts_live').document(u'lpu_counts')
             doc_ref.set({
                 u'count_reset': '{}'.format(datetime.datetime.now().strftime("%H:%M")),
                 u'rack_count': '{}'.format(rack_count),
-                u'palette_count': '{}'.format(palette_count)
+                u'palette_count': '{}'.format(palette_count),
+                u'id':'lpu_counts'
                 })
         except:
             print("Error Connecting to Firebase")
