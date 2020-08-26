@@ -26,10 +26,10 @@ def updateHistory(report):
             (Same header names) 
     """
     df_new = pd.DataFrame(report)
-    df1 = pd.read_csv("logs/count_log.csv",index_col =  False)
-    df = df1.append(df_new, ignore_index = True
-          )
-    df.to_csv("logs/count_log.csv", index = False)
+    df1 = pd.read_csv("logs/LPU_daily_counts.csv",index_col =  False)
+    df = df1.append(df_new, ignore_index = True)
+    
+    df.to_csv("logs/LPU_daily_counts.csv", index = False)
 
 def produceDataPdf():
     df = pd.read_csv("logs/count_log.csv",index_col =  False)
@@ -52,16 +52,28 @@ def updateHourlyHistory(report):
     df_new = pd.DataFrame(report)
     df1 = pd.read_csv("logs/"+date1+"_hourly_count.csv",index_col =  False)
     df = df1.append(df_new, ignore_index = True)
+    df.to_csv("logs/LPU_hourly_counts.csv", index = False)
     df.to_csv("logs/"+date1+"_hourly_count.csv", index = False)
 
 def hourlyLogInit():
-    outh = {"Date time":[],
-            "Hourly Palette Count": [], 
-            "Hourly Rack Count": []
-           }
+    outh = {
+        "dateTime":[],
+        "hourlyPaletteCount": [], 
+        "hourlyRackCount": []
+        }
     df = pd.DataFrame(outh)
     date1 = datetime.datetime.now().strftime("%y_%m_%d")
     df.to_csv("logs/"+date1+"_hourly_count.csv", index = False)
+    df.to_csv("logs/LPU_hourly_counts.csv", index = False)
+def dailyLogInit():
+    out_dict  = {
+        'Start Date and Time': [],
+        'End Date and Time':[],
+        'Total Rack Count':[],
+        'Total Palette Count':[]
+        }
+    df = pd.DataFrame(out_dict)
+    df.to_csv("logs/LPU_daily_counts.csv", index = False)
 
 def RackNet():
     ### CREATE SEQUENTIAL MODEL

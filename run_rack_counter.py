@@ -5,10 +5,10 @@ import cv2
 import argparse
 import time
 import datetime
-from helper import *
-from tensorflow.keras.models import model_from_json
 import firebase_admin
 import os
+from helper import *
+from tensorflow.keras.models import model_from_json
 from firebase_admin import credentials
 from firebase_admin import firestore
 from firebase_admin import storage
@@ -21,7 +21,7 @@ os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = credential_path
 
 ### Initializing Firebase App
 try: 
-    print("Authenticating and Reinitializing Firebase App")
+    print("Authenticating and Initializing Firebase App")
     cred = credentials.ApplicationDefault()
     firebase_admin.initialize_app(cred, {
         #'storageBucket': 'ccpsl-1797d.appspot.com'
@@ -44,11 +44,7 @@ except:
         print("Problem Persists Moving on")
 
 ### Command Line Arguments 
-parser = argparse.ArgumentParser()
-parser.add_argument("IPS", help = "Ip address of camera", type = str)
-parser.add_argument("SupressDisplay", help = "Whether or not to suppress the display", type = bool)
-args = parser.parse_args()
-
+# RAC
 ### Load Model
 # json_file = open('Models/smally_rack_model.json', 'r')
 # loaded_model_json = json_file.read()
@@ -61,7 +57,7 @@ args = parser.parse_args()
 
 ###### model from weights ######
 loaded_model = RackNet()
-loaded_model.load_weights('Models/checkpoints/smally_rack_net_chkpt')
+loaded_model.load_weights(os.getcwd() + '/Models/checkpoints/smally_rack_net_chkpt')
 #loaded_model.predict(np.expand_dims(img, axis = 0))
 
 ###### Model from pb file ######
@@ -77,7 +73,7 @@ print("Loaded model from disk...")
 ### Predefined Region (Not to be changed for guaranteed performance)
 r1 = (150, 368, 63, 41)
 ### Address to video stream
-ip = 'Videos/rack.mp4' ### Test Video
+ip = os.getcwd()+'/'+'Videos/rack.mp4' ### Test Video
 ### Vdeo streaming Object
 print("Loading Capture")
 cap = cv2.VideoCapture(ip) 
@@ -101,10 +97,10 @@ out_dict  = {'Start Date and Time': [],'End Date and Time':[],
              'Total Rack Count':[],'Total Palette Count':[]} 
 
 hourlyLogInit()
-print("Relaoded saved count?")
+print("Reload saved count?")
 print("Checking...")
 
-with open("Count_backup/saved_rack_count.txt", "r") as f:
+with open(os.getcwd()+'/'+"Count_backup/saved_rack_count.txt", "r") as f:
     r, dr = f.read().split("#")
 # with open("Count_backup/saved_palette_count.txt", "r") as f:
 #     p, dp = f.read().split("#")
@@ -259,8 +255,8 @@ while(cap.isOpened()):
                 u'id': '{}'.format(datetime.datetime.now().strftime("%Y-%m-%d"))
                 })
             bucket = storage.bucket()
-            blob = bucket.blob("LPU/logs/count_log.csv")
-            blob.upload_from_filename("logs/count_log.csv")
+            blob = bucket.blob("LPU/LPU_daily_counts.csv")
+            blob.upload_from_filename("logs/LPU_daily_counts.csv")
         except:
             print("Error Connecting to Firebase")
             print("Attemting to reconnect to Firebase Database")
@@ -282,7 +278,7 @@ while(cap.isOpened()):
         print("..............Finished.............")
         rack_count = 0
         palette_count = 0
-        with open("Count_backup/saved_rack_count.txt", "w") as f:
+        with open(os.getcwd() +"/Count_backup/saved_rack_count.txt", "w") as f:
            f.write(str(rack_count) +"#"+ datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S"))
         # with open("Count_backup/saved_palette_count.txt", "w") as f:
         #     f.write(str(palette_count) +"#"+ datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S"))
@@ -315,11 +311,13 @@ while(cap.isOpened()):
                 u'dateTime': datetime.datetime.now(),
                 u'hourlyRackCount': '{}'.format(rack_count),
                 u'hourlyPaletteCount': '{}'.format(palette_count),
-                u'id': "hour_{}".format(time.localtime(time.time()).tm_hout)
+                u'id': "hour_{}".format(time.localtime(time.time()).tm_hour)
                 })
             bucket = storage.bucket()
             blob = bucket.blob("LPU/" + data_filename)
-            blob.upload_from_filename(data_filename)
+            blob.upload_from_filename(os.getcwd()+'/' +data_filename)
+            blob1 = bucket.blob("LPU/LPU_hourly_counts.csv")
+            blob1.upload_from_filename(os.getcwd() + '/'+data_filename)
         except:
             print("Error Connecting to Firebase")
             print("Attemting to reconnect to Firebase Database")
@@ -348,7 +346,7 @@ while(cap.isOpened()):
         print("Palette Count: Not implemeted")
         print("Saving Count Value locally")
 
-        with open("Count_backup/saved_rack_count.txt", "w") as f:
+        with open(os.getcwd()+'/'+"Count_backup/saved_rack_count.txt", "w") as f:
            f.write(str(rack_count) +"#"+ datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S"))
         # with open("Count_backup/saved_palette_count.txt", "w") as f:
         #     f.write(str(palette_count) +"#"+ datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S"))
