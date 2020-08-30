@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-
 import numpy as np
 import cv2 
 import argparse
@@ -73,7 +72,7 @@ print("Loaded model from disk...")
 ### Predefined Region (Not to be changed for guaranteed performance)
 r1 = (150, 368, 63, 41)
 ### Address to video stream
-ip = os.getcwd()+'/'+'Videos/rack.mp4' ### Test Video
+ip = os.getcwd()+'/'+'testing_clips/bricks_missing.mp4' ### Test Video
 ### Vdeo streaming Object
 print("Loading Capture")
 cap = cv2.VideoCapture(ip) 
